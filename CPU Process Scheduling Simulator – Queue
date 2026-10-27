@@ -1,0 +1,110 @@
+#include <stdio.h>
+
+#define MAX 20
+
+
+struct Process {
+    int pid;
+    int burstTime;
+    int waitingTime;
+    int turnaroundTime;
+};
+
+
+struct Process queue[MAX];
+int front = -1;
+int rear = -1;
+
+
+void enqueue(struct Process p) {
+    if (rear == MAX - 1) {
+        printf("Queue is full!\n");
+        return;
+    }
+
+    if (front == -1) {
+        front = 0;
+    }
+
+    queue[++rear] = p;
+}
+
+
+struct Process dequeue() {
+    struct Process p = queue[front++];
+
+    if (front > rear) {
+        front = rear = -1;
+    }
+
+    return p;
+}
+
+int main() {
+    int n, i;
+    int currentTime = 0;
+    float totalWaiting = 0;
+    float totalTurnaround = 0;
+
+    printf("CPU Process Scheduling Simulator\n");
+    printf("Scheduling Algorithm: FCFS\n\n");
+
+    printf("Enter number of processes (1-%d): ", MAX);
+    scanf("%d", &n);
+
+    if (n < 1 || n > MAX) {
+        printf("Invalid number of processes!\n");
+        return 1;
+    }
+
+    
+    for (i = 0; i < n; i++) {
+        struct Process p;
+
+        p.pid = i + 1;
+
+        printf("Enter burst time for P%d: ", p.pid);
+        scanf("%d", &p.burstTime);
+
+        if (p.burstTime <= 0) {
+            printf("Burst time must be positive!\n");
+            return 1;
+        }
+
+        p.waitingTime = 0;
+        p.turnaroundTime = 0;
+
+        enqueue(p);
+    }
+
+    printf("\n--- Scheduling Results ---\n");
+    printf("PID\tBurst\tWaiting\tTurnaround\n");
+
+    
+    while (front != -1) {
+        struct Process p = dequeue();
+
+        p.waitingTime = currentTime;
+        currentTime += p.burstTime;
+        p.turnaroundTime = currentTime;
+
+        totalWaiting += p.waitingTime;
+        totalTurnaround += p.turnaroundTime;
+
+        printf("P%d\t%d\t%d\t%d\n",
+               p.pid,
+               p.burstTime,
+               p.waitingTime,
+               p.turnaroundTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n",
+           totalWaiting / n);
+
+    printf("Average Turnaround Time: %.2f\n",
+           totalTurnaround / n);
+
+    printf("\nAll processes completed!\n");
+
+    return 0;
+}
